@@ -60,6 +60,7 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #131B2E 0%, #1A1F2C 50%, #131B2E 100%);
   }
   
   h1, h2, h3, h4, h5, h6 {

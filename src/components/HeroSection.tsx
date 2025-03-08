@@ -15,10 +15,10 @@ const HeroSection = () => {
       id="home" 
       className="relative min-h-screen pt-28 pb-20 flex flex-col justify-center overflow-hidden"
     >
-      <div className="absolute inset-0 bg-background bg-[radial-gradient(circle_at_30%_50%,rgba(30,30,50,0.7),transparent_80%)]"></div>
+      <div className="absolute inset-0 bg-background bg-gradient-to-br from-[#131B2E] via-[#1A1F2C] to-[#131B2E]"></div>
       
-      {/* Chess board squares pattern overlay */}
-      <div className="absolute inset-0 chess-pattern-bg"></div>
+      {/* Chess board squares pattern overlay with reduced opacity */}
+      <div className="absolute inset-0 chess-pattern-bg opacity-20"></div>
       
       <div className="container mx-auto px-4 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -33,7 +33,7 @@ const HeroSection = () => {
               </span>
             </h1>
             
-            <p className="text-lg text-muted-foreground max-w-xl">
+            <p className="text-lg text-white max-w-xl">
               Elevate your chess game with expert coaches from around the world. 
               Our online academy brings world-class chess instruction directly to you, 
               no matter where you are.
@@ -61,13 +61,6 @@ const HeroSection = () => {
                   alt="Chess master teaching online" 
                   className="w-full h-full object-cover"
                 />
-                
-                {/* Glass panel overlay */}
-                <div className="absolute bottom-0 left-0 right-0 glass p-6">
-                  <p className="font-medium text-white">
-                    Join students from over 40 countries learning chess with our world-class instructors
-                  </p>
-                </div>
               </div>
               
               {/* Floating stats card */}
