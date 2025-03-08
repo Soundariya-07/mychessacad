@@ -39,6 +39,8 @@ const Navbar = () => {
             <a href="#programs" className="text-sm text-white/80 hover:text-accent hover-effect">Programs</a>
             <a href="#pricing" className="text-sm text-white/80 hover:text-accent hover-effect">Pricing</a>
             <a href="#testimonials" className="text-sm text-white/80 hover:text-accent hover-effect">Testimonials</a>
+            <a href="#benefits" className="text-sm text-white/80 hover:text-accent hover-effect">Benefits</a>
+            <a href="#faq" className="text-sm text-white/80 hover:text-accent hover-effect">FAQ</a>
             <Button size="sm" variant="outline" className="bg-transparent border-accent text-accent hover:bg-accent hover:text-background button-effect">
               Book Free Demo
             </Button>
@@ -89,6 +91,20 @@ const Navbar = () => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Testimonials
+              </a>
+              <a 
+                href="#benefits" 
+                className="text-white/80 hover:text-accent py-2 hover-effect"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Benefits
+              </a>
+              <a 
+                href="#faq" 
+                className="text-white/80 hover:text-accent py-2 hover-effect"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                FAQ
               </a>
               <Button 
                 size="sm" 

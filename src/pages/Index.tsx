@@ -5,6 +5,8 @@ import HeroSection from "@/components/HeroSection";
 import ProgramsSection from "@/components/ProgramsSection";
 import PricingCard from "@/components/PricingCard";
 import TestimonialCard from "@/components/TestimonialCard";
+import BenefitsSection from "@/components/BenefitsSection";
+import FAQSection from "@/components/FAQSection";
 import Footer from "@/components/Footer";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -44,6 +46,9 @@ const Index = () => {
       
       {/* Programs Section */}
       <ProgramsSection />
+      
+      {/* Benefits Section */}
+      <BenefitsSection />
       
       {/* Pricing Section */}
       <section id="pricing" className="py-24 relative">
@@ -180,6 +185,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+      
+      {/* FAQ Section */}
+      <FAQSection />
       
       {/* CTA Section */}
       <section className="py-20 relative overflow-hidden">

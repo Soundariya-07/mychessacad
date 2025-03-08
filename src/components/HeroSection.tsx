@@ -28,7 +28,6 @@ const HeroSection = () => {
             </div>
             
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-              Beyond the Board<br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-accent/70">
                 Making Chess Reach Across the Globe
               </span>
