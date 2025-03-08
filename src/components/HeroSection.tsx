@@ -15,10 +15,10 @@ const HeroSection = () => {
       id="home" 
       className="relative min-h-screen pt-28 pb-20 flex flex-col justify-center overflow-hidden"
     >
-      <div className="absolute inset-0 bg-chess-dark bg-[radial-gradient(circle_at_30%_50%,rgba(30,30,50,0.7),transparent_80%)]"></div>
+      <div className="absolute inset-0 bg-background bg-[radial-gradient(circle_at_30%_50%,rgba(30,30,50,0.7),transparent_80%)]"></div>
       
       {/* Chess board squares pattern overlay */}
-      <div className="absolute inset-0 opacity-5 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMCAwaDIwdjIwSDB6TTIwIDIwaDIwdjIwSDIweiIgZmlsbD0iI2ZmZiIgZmlsbC1vcGFjaXR5PSIwLjMiIGZpbGwtcnVsZT0iZXZlbm9kZCIvPjwvc3ZnPg==')]"></div>
+      <div className="absolute inset-0 chess-pattern-bg"></div>
       
       <div className="container mx-auto px-4 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -41,7 +41,7 @@ const HeroSection = () => {
             </p>
             
             <div className="flex flex-wrap gap-4 pt-2">
-              <Button size="lg" className="bg-accent text-chess-dark hover:bg-accent/90 button-effect">
+              <Button size="lg" className="bg-accent text-background hover:bg-accent/90 button-effect">
                 Book Free Demo <ArrowRight size={16} className="ml-2" />
               </Button>
               <Button size="lg" variant="outline" className="border-white/10 hover:bg-white/5 button-effect">
@@ -53,12 +53,12 @@ const HeroSection = () => {
           <div className={`relative ${loaded ? 'animate-fade-in' : 'opacity-0'}`} style={{animationDelay: '0.4s'}}>
             <div className="relative w-full aspect-square max-w-md mx-auto lg:ml-auto">
               {/* Decorative chess board backdrop */}
-              <div className="absolute top-4 right-4 w-full h-full rounded-xl bg-chess-darker"></div>
+              <div className="absolute top-4 right-4 w-full h-full rounded-xl bg-card"></div>
               
               {/* Main image */}
               <div className="relative z-10 w-full h-full overflow-hidden rounded-xl border border-white/10 shadow-2xl">
                 <img 
-                  src="https://images.unsplash.com/photo-1587829741301-dc798b83add3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+                  src="https://images.unsplash.com/photo-1611195974226-a6a9be9dd763?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
                   alt="Chess master teaching online" 
                   className="w-full h-full object-cover"
                 />

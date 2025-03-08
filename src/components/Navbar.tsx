@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Menu, X } from 'lucide-react';
+import { Menu, X, LogIn } from 'lucide-react';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -21,7 +21,7 @@ const Navbar = () => {
   }, []);
 
   return (
-    <header className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-chess-dark/90 backdrop-blur-md border-b border-white/5 py-3' : 'bg-transparent py-4'}`}>
+    <header className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-background/90 backdrop-blur-md border-b border-white/5 py-3' : 'bg-transparent py-4'}`}>
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
@@ -39,8 +39,11 @@ const Navbar = () => {
             <a href="#programs" className="text-sm text-white/80 hover:text-accent hover-effect">Programs</a>
             <a href="#pricing" className="text-sm text-white/80 hover:text-accent hover-effect">Pricing</a>
             <a href="#testimonials" className="text-sm text-white/80 hover:text-accent hover-effect">Testimonials</a>
-            <Button size="sm" variant="outline" className="bg-transparent border-accent text-accent hover:bg-accent hover:text-chess-dark button-effect">
+            <Button size="sm" variant="outline" className="bg-transparent border-accent text-accent hover:bg-accent hover:text-background button-effect">
               Book Free Demo
+            </Button>
+            <Button size="sm" className="bg-accent text-background hover:bg-accent/90 button-effect">
+              <LogIn className="mr-2 h-4 w-4" /> Login
             </Button>
           </nav>
           
@@ -56,7 +59,7 @@ const Navbar = () => {
       
       {/* Mobile Navigation */}
       {isMenuOpen && (
-        <div className="md:hidden absolute top-full left-0 w-full bg-chess-darker/95 backdrop-blur-lg border-b border-white/5 py-4 animate-fade-in">
+        <div className="md:hidden absolute top-full left-0 w-full bg-card/95 backdrop-blur-lg border-b border-white/5 py-4 animate-fade-in">
           <div className="container mx-auto px-4">
             <nav className="flex flex-col space-y-4">
               <a 
@@ -90,10 +93,17 @@ const Navbar = () => {
               <Button 
                 size="sm" 
                 variant="outline" 
-                className="bg-transparent border-accent text-accent hover:bg-accent hover:text-chess-dark w-full mt-2 button-effect"
+                className="bg-transparent border-accent text-accent hover:bg-accent hover:text-background w-full mt-2 button-effect"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Book Free Demo
+              </Button>
+              <Button 
+                size="sm"
+                className="bg-accent text-background hover:bg-accent/90 w-full button-effect"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <LogIn className="mr-2 h-4 w-4" /> Login
               </Button>
             </nav>
           </div>

@@ -16,27 +16,27 @@ const Index = () => {
       quote: "BeyondTheBoard has completely transformed my approach to chess. The personalized coaching has helped me increase my rating by over 300 points in just six months.",
       name: "Michael Chen",
       title: "FIDE Rating 2100+",
-      image: "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80",
+      image: "https://images.unsplash.com/photo-1580541832626-2a7131ee809f?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80",
       rating: 5
     },
     {
       quote: "The group classes are engaging and the coaches make complex concepts easy to understand. My daughter loves the interactive sessions and the global community.",
       name: "Sarah Johnson",
       title: "Parent of a chess prodigy",
-      image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80",
+      image: "https://images.unsplash.com/photo-1560807707-8cc77767d783?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80",
       rating: 5
     },
     {
       quote: "As a beginner, I was intimidated by chess, but the coaches at BeyondTheBoard created such a welcoming environment. Now I play confidently and understand the game deeply.",
       name: "David Rodriguez",
       title: "Beginner turned enthusiast",
-      image: "https://images.unsplash.com/photo-1552058544-f2b08422138a?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80",
+      image: "https://images.unsplash.com/photo-1614538287231-2779e0e4f8ca?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80",
       rating: 5
     }
   ];
 
   return (
-    <div className="min-h-screen bg-chess-dark text-white overflow-x-hidden">
+    <div className="min-h-screen bg-background text-white overflow-x-hidden">
       <Navbar />
       
       {/* Hero Section */}
@@ -48,6 +48,7 @@ const Index = () => {
       {/* Pricing Section */}
       <section id="pricing" className="py-24 relative">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_60%,rgba(30,30,50,0.4),transparent_60%)]"></div>
+        <div className="absolute inset-0 chess-pattern-bg opacity-20"></div>
         
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center max-w-3xl mx-auto mb-16">
@@ -128,8 +129,8 @@ const Index = () => {
               <p className="text-muted-foreground mb-6">
                 Not sure which plan is right for you? Try a free demo class first!
               </p>
-              <Button className="bg-accent text-chess-dark hover:bg-accent/90 button-effect">
-                Book Your Free Demo <ArrowRight size={16} className="ml-2" />
+              <Button className="bg-accent text-background hover:bg-accent/90 button-effect">
+                Enroll Now <ArrowRight size={16} className="ml-2" />
               </Button>
             </div>
           </div>
@@ -138,13 +139,14 @@ const Index = () => {
       
       {/* Chess Board Pattern Divider */}
       <div className="relative h-24 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMCAwaDIwdjIwSDB6TTIwIDIwaDIwdjIwSDIweiIgZmlsbD0iI2ZmZiIgZmlsbC1vcGFjaXR5PSIwLjA1IiBmaWxsLXJ1bGU9ImV2ZW5vZGQiLz48L3N2Zz4=')]"></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-chess-dark via-transparent to-chess-darker"></div>
+        <div className="absolute inset-0 chess-pattern-bg opacity-30"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-card"></div>
       </div>
       
       {/* Testimonials Section */}
-      <section id="testimonials" className="py-24 bg-chess-darker relative">
+      <section id="testimonials" className="py-24 bg-card relative">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_60%_40%,rgba(30,30,50,0.4),transparent_60%)]"></div>
+        <div className="absolute inset-0 chess-pattern-bg opacity-10"></div>
         
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center max-w-3xl mx-auto mb-16">
@@ -181,7 +183,8 @@ const Index = () => {
       
       {/* CTA Section */}
       <section className="py-20 relative overflow-hidden">
-        <div className="absolute inset-0 bg-chess-dark bg-[radial-gradient(circle_at_50%_50%,rgba(230,199,126,0.08),transparent_50%)]"></div>
+        <div className="absolute inset-0 bg-background bg-[radial-gradient(circle_at_50%_50%,rgba(66,153,225,0.08),transparent_50%)]"></div>
+        <div className="absolute inset-0 chess-pattern-bg opacity-15"></div>
         
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl mx-auto glass rounded-2xl p-10 border border-accent/30">
@@ -193,7 +196,7 @@ const Index = () => {
                   Book a free demo class and experience our world-class instruction.
                 </p>
                 <div className="flex flex-wrap gap-4">
-                  <Button className="bg-accent text-chess-dark hover:bg-accent/90 button-effect">
+                  <Button className="bg-accent text-background hover:bg-accent/90 button-effect">
                     Book Free Demo <ArrowRight size={16} className="ml-2" />
                   </Button>
                   <Button variant="outline" className="border-white/10 hover:bg-white/5 button-effect">
@@ -205,7 +208,7 @@ const Index = () => {
                 <div className="absolute -top-5 -left-5 w-full h-full bg-accent/10 rounded-xl"></div>
                 <div className="relative z-10 overflow-hidden rounded-xl border border-white/10">
                   <img 
-                    src="https://images.unsplash.com/photo-1560807707-8cc77767d783?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+                    src="https://images.unsplash.com/photo-1611195974226-a6a9be9dd763?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
                     alt="Chess training" 
                     className="w-full h-full object-cover"
                   />
