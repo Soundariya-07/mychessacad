@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { authAPI } from '@/lib/api';
 
 interface User {
   _id: string;
@@ -11,7 +12,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string, role: 'student' | 'coach') => Promise<void>;
   logout: () => void;
   isLoading: boolean;
   error: string | null;
@@ -40,22 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setError(null);
       console.log('Attempting login...');
 
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Login failed');
-      }
-
-      const data = await response.json();
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      const data = await authAPI.login({ email, password });
       setUser(data.user);
 
       // Redirect based on user role
@@ -66,49 +52,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         navigate('/dashboard/student');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Login error:', err);
-      setError(err instanceof Error ? err.message : 'Login failed');
+      const errorMessage = err.response?.data?.message || 'Login failed';
+      setError(errorMessage);
+      throw new Error(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const register = async (name: string, email: string, password: string) => {
+  const register = async (name: string, email: string, password: string, role: 'student' | 'coach') => {
     try {
       setIsLoading(true);
       setError(null);
       console.log('Attempting registration...');
 
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, email, password }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Registration failed');
-      }
-
-      const data = await response.json();
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      const data = await authAPI.register({ name, email, password, role });
       setUser(data.user);
-      navigate('/dashboard/student'); // New users are registered as students by default
-    } catch (err) {
+      
+      // Redirect based on user role
+      if (data.user.role === 'coach') {
+        navigate('/dashboard/coach');
+      } else {
+        navigate('/dashboard/student');
+      }
+    } catch (err: any) {
       console.error('Registration error:', err);
-      setError(err instanceof Error ? err.message : 'Registration failed');
+      const errorMessage = err.response?.data?.message || 'Registration failed';
+      setError(errorMessage);
+      throw new Error(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    authAPI.logout();
     setUser(null);
     navigate('/');
   };

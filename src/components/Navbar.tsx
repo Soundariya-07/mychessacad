@@ -18,6 +18,7 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProgramsOpen, setIsProgramsOpen] = useState(false);
+  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   
@@ -136,7 +137,7 @@ const Navbar = () => {
                 </>
               ) : (
                 <>
-                  <AuthDialog />
+                  <AuthDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen} />
                 </>
               )}
             </div>
@@ -239,7 +240,7 @@ const Navbar = () => {
                   </>
                 ) : (
                   <>
-                    <AuthDialog />
+                    <AuthDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen} />
                   </>
                 )}
               </div>

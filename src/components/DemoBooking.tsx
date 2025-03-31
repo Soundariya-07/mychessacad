@@ -20,6 +20,8 @@ import {
 } from '@/components/ui/select';
 import { format, addDays } from 'date-fns';
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from '@/components/ui/use-toast';
+import { bookingsAPI } from '@/lib/api';
 
 // Available time slots (24-hour format)
 const TIME_SLOTS = [
@@ -45,21 +47,46 @@ export const DemoBooking = () => {
   const [date, setDate] = useState<Date>();
   const [timeSlot, setTimeSlot] = useState<string>();
   const [timezone, setTimezone] = useState(TIMEZONES[0].value);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement demo booking logic
-    console.log('Demo booking:', { 
-      name, 
-      age,
-      email, 
-      phone, 
-      level, 
-      date: date?.toISOString(),
-      timeSlot,
-      timezone 
-    });
-    setIsOpen(false);
+    setLoading(true);
+
+    try {
+      if (!date || !timeSlot) {
+        throw new Error('Please select both date and time');
+      }
+
+      // Combine date and time slot
+      const [hours, minutes] = timeSlot.split(':');
+      const preferredDateTime = new Date(date);
+      preferredDateTime.setHours(parseInt(hours));
+      preferredDateTime.setMinutes(parseInt(minutes));
+
+      await bookingsAPI.createBooking({
+        name,
+        email,
+        phone,
+        preferredDateTime: preferredDateTime.toISOString(),
+        timezone
+      });
+
+      toast({
+        title: 'Success',
+        description: 'Demo session booked successfully! We will contact you shortly.',
+      });
+      setIsOpen(false);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to book demo session. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const formatTimeSlot = (slot: string) => {
@@ -190,8 +217,12 @@ export const DemoBooking = () => {
               </SelectContent>
             </Select>
           </div>
-          <Button type="submit" className="w-full bg-[#60A5FA] text-white hover:bg-[#3B82F6]">
-            Schedule Demo
+          <Button 
+            type="submit" 
+            className="w-full bg-[#60A5FA] text-white hover:bg-[#3B82F6]"
+            disabled={loading}
+          >
+            {loading ? 'Booking...' : 'Schedule Demo'}
           </Button>
         </form>
       </DialogContent>

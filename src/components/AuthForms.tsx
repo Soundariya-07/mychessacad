@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/components/ui/use-toast';
 
 // Admin credentials
 const ADMIN_CREDENTIALS = [
@@ -31,22 +32,41 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({ open, onOpenChange }) =>
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'student' | 'coach'>('student');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const { login, register } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
     try {
       if (isLogin) {
         await login(email, password);
+        toast({
+          title: 'Success',
+          description: 'Logged in successfully!',
+        });
       } else {
         await register(name, email, password, role);
+        toast({
+          title: 'Success',
+          description: 'Registered successfully!',
+        });
       }
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Authentication failed');
+      const errorMessage = err instanceof Error ? err.message : 'Authentication failed';
+      setError(errorMessage);
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -116,8 +136,12 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({ open, onOpenChange }) =>
           {error && (
             <div className="text-red-500 text-sm">{error}</div>
           )}
-          <Button type="submit" className="w-full bg-[#60A5FA] text-white hover:bg-[#3B82F6]">
-            {isLogin ? 'Login' : 'Register'}
+          <Button 
+            type="submit" 
+            className="w-full bg-[#60A5FA] text-white hover:bg-[#3B82F6]"
+            disabled={loading}
+          >
+            {loading ? (isLogin ? 'Logging in...' : 'Registering...') : (isLogin ? 'Login' : 'Register')}
           </Button>
           <Button
             type="button"

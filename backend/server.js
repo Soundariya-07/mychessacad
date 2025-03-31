@@ -9,6 +9,9 @@ const userRoutes = require('./routes/users');
 const programRoutes = require('./routes/programs');
 const bookingRoutes = require('./routes/bookings');
 const enrollmentRoutes = require('./routes/enrollments');
+const classRoutes = require('./routes/classes');
+const coachRoutes = require('./routes/coach');
+const studentRoutes = require('./routes/student');
 
 dotenv.config();
 
@@ -37,6 +40,9 @@ app.use('/api/users', userRoutes);
 app.use('/api/programs', programRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/enrollments', enrollmentRoutes);
+app.use('/api/classes', classRoutes);
+app.use('/api/coach', coachRoutes);
+app.use('/api/student', studentRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
