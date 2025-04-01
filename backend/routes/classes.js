@@ -11,7 +11,7 @@ router.get('/', authenticateToken, async (req, res) => {
     }
 
     const classes = await Class.find()
-      .populate('program', 'title')
+      .populate('program', 'name level description')
       .populate('coach', 'name email')
       .populate('students', 'name email')
       .sort({ createdAt: -1 });
@@ -33,6 +33,7 @@ router.post('/', authenticateToken, async (req, res) => {
       name,
       program,
       coach,
+      students,
       schedule,
       maxStudents,
       description
@@ -42,14 +43,24 @@ router.post('/', authenticateToken, async (req, res) => {
       name,
       program,
       coach,
+      students: students || [],
       schedule,
       maxStudents,
-      description
+      description,
+      status: 'scheduled'
     });
 
     await newClass.save();
-    res.status(201).json(newClass);
+
+    // Populate the new class with referenced data
+    const populatedClass = await Class.findById(newClass._id)
+      .populate('program', 'name level description')
+      .populate('coach', 'name email')
+      .populate('students', 'name email');
+
+    res.status(201).json(populatedClass);
   } catch (error) {
+    console.error('Error creating class:', error);
     res.status(500).json({ message: 'Error creating class', error: error.message });
   }
 });
@@ -130,6 +141,54 @@ router.delete('/:id/students/:studentId', authenticateToken, async (req, res) =>
     res.json({ message: 'Student removed from class successfully', class: classObj });
   } catch (error) {
     res.status(500).json({ message: 'Error removing student from class', error: error.message });
+  }
+});
+
+// Update class (admin only)
+router.put('/:id', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const {
+      name,
+      program,
+      coach,
+      students,
+      schedule,
+      maxStudents,
+      description,
+      status
+    } = req.body;
+
+    const classObj = await Class.findById(req.params.id);
+    if (!classObj) {
+      return res.status(404).json({ message: 'Class not found' });
+    }
+
+    // Update fields
+    classObj.name = name;
+    classObj.program = program;
+    classObj.coach = coach;
+    classObj.students = students || [];
+    classObj.schedule = schedule;
+    classObj.maxStudents = maxStudents;
+    classObj.description = description;
+    if (status) classObj.status = status;
+
+    await classObj.save();
+
+    // Return populated class
+    const updatedClass = await Class.findById(classObj._id)
+      .populate('program', 'name level description')
+      .populate('coach', 'name email')
+      .populate('students', 'name email');
+
+    res.json(updatedClass);
+  } catch (error) {
+    console.error('Error updating class:', error);
+    res.status(500).json({ message: 'Error updating class', error: error.message });
   }
 });
 

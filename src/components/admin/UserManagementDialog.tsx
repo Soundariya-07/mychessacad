@@ -19,11 +19,19 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import api from '@/lib/api';
 
+interface Program {
+  _id: string;
+  name: string;
+  level: string;
+  description: string;
+}
+
 interface User {
   _id: string;
   name: string;
   email: string;
   role: 'student' | 'coach' | 'admin';
+  program?: string;
   createdAt: string;
 }
 
@@ -47,8 +55,10 @@ const UserManagementDialog: React.FC<UserManagementDialogProps> = ({
     email: '',
     password: '',
     role: 'student' as 'student' | 'coach' | 'admin',
+    program: '',
   });
   const [loading, setLoading] = useState(false);
+  const [programs, setPrograms] = useState<Program[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -58,6 +68,7 @@ const UserManagementDialog: React.FC<UserManagementDialogProps> = ({
         email: user.email,
         password: '',
         role: user.role,
+        program: user.program || '',
       });
     } else {
       setFormData({
@@ -65,9 +76,32 @@ const UserManagementDialog: React.FC<UserManagementDialogProps> = ({
         email: '',
         password: '',
         role: 'student',
+        program: '',
       });
     }
   }, [user]);
+
+  useEffect(() => {
+    // Fetch programs when dialog opens
+    if (open) {
+      fetchPrograms();
+    }
+  }, [open]);
+
+  const fetchPrograms = async () => {
+    try {
+      const response = await api.get('/programs');
+      console.log('Fetched programs:', response.data);
+      setPrograms(response.data);
+    } catch (error) {
+      console.error('Error fetching programs:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch programs',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,10 +113,19 @@ const UserManagementDialog: React.FC<UserManagementDialogProps> = ({
       if (!submitData.password) {
         delete submitData.password;
       }
+      
+      // Only include program if role is student
+      if (submitData.role !== 'student') {
+        delete submitData.program;
+      }
+
+      console.log('Submitting user data:', submitData);
+      console.log('Selected program:', programs.find(p => p._id === submitData.program));
 
       if (user) {
         // Update existing user
-        await api.put(`/users/${user._id}`, submitData);
+        const response = await api.put(`/users/${user._id}`, submitData);
+        console.log('Update response:', response.data);
         toast({
           title: 'Success',
           description: 'User updated successfully',
@@ -90,7 +133,8 @@ const UserManagementDialog: React.FC<UserManagementDialogProps> = ({
         onUserUpdated?.();
       } else {
         // Create new user
-        await api.post('/users', submitData);
+        const response = await api.post('/users', submitData);
+        console.log('Create response:', response.data);
         toast({
           title: 'Success',
           description: 'User created successfully',
@@ -157,7 +201,7 @@ const UserManagementDialog: React.FC<UserManagementDialogProps> = ({
             <Select
               value={formData.role}
               onValueChange={(value: 'student' | 'coach' | 'admin') =>
-                setFormData({ ...formData, role: value })
+                setFormData({ ...formData, role: value, program: value === 'student' ? formData.program : '' })
               }
             >
               <SelectTrigger className="bg-[#1F2937] border-[#374151] text-white">
@@ -170,6 +214,28 @@ const UserManagementDialog: React.FC<UserManagementDialogProps> = ({
               </SelectContent>
             </Select>
           </div>
+          {formData.role === 'student' && (
+            <div className="space-y-2">
+              <Label htmlFor="program">Program</Label>
+              <Select
+                value={formData.program}
+                onValueChange={(value: string) =>
+                  setFormData({ ...formData, program: value })
+                }
+              >
+                <SelectTrigger className="bg-[#1F2937] border-[#374151] text-white">
+                  <SelectValue placeholder="Select program" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#1F2937] border-[#374151]">
+                  {programs.map((program) => (
+                    <SelectItem key={program._id} value={program._id}>
+                      {program.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="flex justify-end space-x-2">
             <Button
               type="button"

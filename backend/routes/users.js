@@ -61,12 +61,20 @@ router.post('/', authenticateToken, async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, program } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists' });
+    }
+
+    // If role is student and program is provided, verify program exists
+    if (role === 'student' && program) {
+      const programExists = await Program.findById(program);
+      if (!programExists) {
+        return res.status(400).json({ message: 'Invalid program selected' });
+      }
     }
 
     // Hash password
@@ -77,7 +85,8 @@ router.post('/', authenticateToken, async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      role
+      role,
+      ...(role === 'student' && program ? { program } : {})
     });
 
     await user.save();
@@ -99,8 +108,16 @@ router.put('/:id', authenticateToken, async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    const { name, email, role } = req.body;
+    const { name, email, role, program } = req.body;
     const userId = req.params.id;
+
+    console.log('Update user request:', {
+      userId,
+      name,
+      email,
+      role,
+      program
+    });
 
     // Find user
     const user = await User.findById(userId);
@@ -116,22 +133,48 @@ router.put('/:id', authenticateToken, async (req, res) => {
       }
     }
 
+    // If role is student and program is provided, verify program exists
+    if (role === 'student' && program) {
+      console.log('Verifying program:', program);
+      const programExists = await Program.findById(program);
+      console.log('Found program:', programExists);
+      if (!programExists) {
+        return res.status(400).json({ message: 'Invalid program selected' });
+      }
+    }
+
     // Update user fields
     if (name) user.name = name;
     if (email) user.email = email;
-    if (role) user.role = role;
+    
+    // Handle role and program updates
+    if (role) {
+      user.role = role;
+      if (role !== 'student') {
+        // Clear program if role is not student
+        user.program = undefined;
+      } else if (program) {
+        // Update program if role is student and program is provided
+        user.program = program;
+      }
+    } else if (user.role === 'student' && program) {
+      // Update program for existing student
+      user.program = program;
+    }
 
     // Update password if provided
     if (req.body.password) {
       user.password = await bcrypt.hash(req.body.password, 10);
     }
 
+    console.log('Updated user before save:', user);
     await user.save();
 
     // Return updated user without password
     const userResponse = user.toObject();
     delete userResponse.password;
 
+    console.log('Final user response:', userResponse);
     res.json(userResponse);
   } catch (error) {
     console.error('Update user error:', error);
@@ -160,22 +203,16 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// Get students by program level
-router.get('/by-program/:level', authenticateToken, async (req, res) => {
+// Get students by program
+router.get('/by-program/:programId', authenticateToken, async (req, res) => {
   try {
-    const { level } = req.params;
+    const { programId } = req.params;
     
-    // Find the program by level
-    const program = await Program.findOne({ level });
-    if (!program) {
-      return res.status(404).json({ message: 'Program not found' });
-    }
-
     // Find all students enrolled in this program
     const students = await User.find({
       role: 'student',
-      program: program._id
-    });
+      program: programId
+    }).select('-password');
 
     res.json(students);
   } catch (error) {
@@ -184,4 +221,4 @@ router.get('/by-program/:level', authenticateToken, async (req, res) => {
   }
 });
 
-module.exports = router; 
+module.exports = router;

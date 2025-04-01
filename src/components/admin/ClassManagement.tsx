@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Plus } from 'lucide-react';
+import { Search, Plus, UserPlus, UserMinus } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -17,135 +17,87 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { MultiSelect } from '@/components/ui/multi-select';
 import { useToast } from '@/components/ui/use-toast';
 import api from '@/lib/api';
 import { Label } from '@/components/ui/label';
 
-interface Program {
-  _id: string;
-  level: string;
-  description?: string;
-  // Add any other properties that might be in your Program model
-}
-
+// Define interfaces for our data types
 interface Coach {
   _id: string;
   name: string;
   email: string;
+  students: string[];
 }
 
-interface Class {
+interface Student {
   _id: string;
   name: string;
-  program: Program;
-  coach: Coach;
-  students: Array<{
+  email: string;
+  program: {
     _id: string;
-    name: string;
-    email: string;
-  }>;
-  schedule: {
-    dayOfWeek: number;
-    startTime: string;
-    duration: number;
-    timezone: string;
+    level: string;
   };
-  status: 'scheduled' | 'in-progress' | 'completed' | 'cancelled';
-  maxStudents: number;
-  description: string;
 }
 
-const DAYS_OF_WEEK = [
-  'Sunday',
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday'
-];
-
-const TIMEZONES = [
-  { value: 'Asia/Kolkata', label: 'IST (UTC+5:30)' },
-  { value: 'America/Los_Angeles', label: 'PST (UTC-8)' },
-  { value: 'America/New_York', label: 'EST (UTC-5)' }
-];
-
-const PROGRAMS = [
-  { id: 'beginner', title: 'Beginner' },
-  { id: 'intermediate', title: 'Intermediate' },
-  { id: 'advanced', title: 'Advanced' }
-];
+interface Program {
+  _id: string;
+  level: string;
+}
 
 const ClassManagement = () => {
-  const [classes, setClasses] = useState<Class[]>([]);
+  // State management
   const [coaches, setCoaches] = useState<Coach[]>([]);
-  const [students, setStudents] = useState<any[]>([]);
-  const [dbPrograms, setDbPrograms] = useState<Program[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingClass, setEditingClass] = useState<Class | null>(null);
+  const [selectedCoach, setSelectedCoach] = useState<Coach | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
 
-  // Form state
-  const [formData, setFormData] = useState({
-    name: '',
-    program: '',
-    coach: '',
-    students: [] as string[],
-    schedule: {
-      dayOfWeek: 0,
-      startTime: '',
-      duration: 60,
-      timezone: TIMEZONES[0].value
-    },
-    maxStudents: 10,
-    description: ''
-  });
-
-  // Add portal container ref
-  const portalContainerRef = React.useRef<HTMLDivElement>(null);
-
+  // Fetch initial data
   useEffect(() => {
-    fetchClasses();
-    fetchCoaches();
-    fetchPrograms();
+    const fetchInitialData = async () => {
+      setLoading(true);
+      try {
+        await Promise.all([
+          fetchCoaches(),
+          fetchPrograms(),
+          fetchStudents()
+        ]);
+      } catch (error) {
+        console.error('Error fetching initial data:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load data',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchInitialData();
   }, []);
 
-  // Fetch students when program changes
-  useEffect(() => {
-    if (formData.program) {
-      fetchStudentsByProgram(formData.program);
-    }
-  }, [formData.program]);
-
-  // Reset form when dialog closes
-  useEffect(() => {
-    if (!isDialogOpen) {
-      setFormData({
-        name: '',
-        program: '',
-        coach: '',
-        students: [],
-        schedule: {
-          dayOfWeek: 0,
-          startTime: '',
-          duration: 60,
-          timezone: TIMEZONES[0].value
-        },
-        maxStudents: 10,
-        description: ''
+  // API calls
+  const fetchCoaches = async () => {
+    try {
+      const response = await api.get('/coaches');
+      setCoaches(response.data);
+    } catch (error) {
+      console.error('Error fetching coaches:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch coaches',
+        variant: 'destructive',
       });
-      setEditingClass(null);
     }
-  }, [isDialogOpen]);
+  };
 
   const fetchPrograms = async () => {
     try {
       const response = await api.get('/programs');
-      setDbPrograms(response.data);
+      console.log('Fetched programs:', response.data); // Debugging log
+      setPrograms(response.data);
     } catch (error) {
       console.error('Error fetching programs:', error);
       toast({
@@ -156,46 +108,11 @@ const ClassManagement = () => {
     }
   };
 
-  const fetchClasses = async () => {
-    try {
-      const response = await api.get('/classes');
-      setClasses(response.data);
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch classes',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchCoaches = async () => {
+  const fetchStudents = async () => {
     try {
       const response = await api.get('/users');
-      setCoaches(response.data.filter((user: any) => user.role === 'coach'));
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch coaches',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const fetchStudentsByProgram = async (programLevel: string) => {
-    try {
-      // Convert program ID (beginner, intermediate, advanced) to proper level name
-      const level = PROGRAMS.find(p => p.id === programLevel)?.title;
-      if (!level) {
-        throw new Error('Invalid program level');
-      }
-
-      // Fetch students enrolled in the specific program level
-      const response = await api.get(`/users/by-program/${level}`);
-      const students = response.data.filter((user: any) => user.role === 'student');
-      setStudents(students);
+      const studentsData = response.data.filter((user: any) => user.role === 'student');
+      setStudents(studentsData);
     } catch (error) {
       console.error('Error fetching students:', error);
       toast({
@@ -203,432 +120,228 @@ const ClassManagement = () => {
         description: 'Failed to fetch students',
         variant: 'destructive',
       });
-      // Set empty array to prevent undefined errors
-      setStudents([]);
     }
   };
 
-  // Update the program selection button click handler
+  const handleAssignStudent = async (studentId: string) => {
+    if (!selectedCoach) return;
+
+    try {
+      await api.post(`/coaches/${selectedCoach._id}/students`, {
+        studentId
+      });
+      
+      // Refresh coaches data to get updated student list
+      await fetchCoaches();
+      
+      // Update selected coach
+      const updatedCoach = coaches.find(c => c._id === selectedCoach._id);
+      if (updatedCoach) {
+        setSelectedCoach(updatedCoach);
+      }
+
+      toast({
+        title: 'Success',
+        description: 'Student assigned successfully',
+      });
+    } catch (error: any) {
+      console.error('Error assigning student:', error);
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to assign student',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleRemoveStudent = async (studentId: string) => {
+    if (!selectedCoach) return;
+
+    try {
+      await api.delete(`/coaches/${selectedCoach._id}/students/${studentId}`);
+      
+      // Refresh coaches data to get updated student list
+      await fetchCoaches();
+      
+      // Update selected coach
+      const updatedCoach = coaches.find(c => c._id === selectedCoach._id);
+      if (updatedCoach) {
+        setSelectedCoach(updatedCoach);
+      }
+
+      toast({
+        title: 'Success',
+        description: 'Student removed successfully',
+      });
+    } catch (error: any) {
+      console.error('Error removing student:', error);
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to remove student',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  function fetchStudentsByProgram(programId: string) {
+    console.log(`Fetching students for program ID: ${programId}`);
+    const filteredStudents = students.filter(
+      (student) => student.program._id === programId
+    );
+
+    if (filteredStudents.length === 0) {
+      toast({
+        title: "Info",
+        description: "No students found for the selected program.",
+        variant: "info",
+      });
+    }
+
+    setStudents(filteredStudents);
+  }
+
   const handleProgramSelect = (programId: string) => {
-    setFormData({ 
-      ...formData, 
-      program: programId,
-      students: [] // Reset selected students when program changes
-    });
     fetchStudentsByProgram(programId);
   };
 
-  const handleEdit = (classObj: Class) => {
-    setEditingClass(classObj);
-    // Find the program ID from PROGRAMS array
-    const programId = PROGRAMS.find(p => 
-      p.title.toLowerCase() === classObj.program.level.toLowerCase()
-    )?.id || '';
+  const availablePrograms = [
+    { "_id": "1", "level": "Beginner" },
+    { "_id": "2", "level": "Intermediate" },
+    { "_id": "3", "level": "Advanced" },
+    { "_id": "4", "level": "Expert" }
+  ];
 
-    setFormData({
-      name: classObj.name,
-      program: programId,
-      coach: classObj.coach._id,
-      students: classObj.students.map(s => s._id),
-      schedule: {
-        dayOfWeek: classObj.schedule.dayOfWeek,
-        startTime: classObj.schedule.startTime,
-        duration: classObj.schedule.duration,
-        timezone: classObj.schedule.timezone
-      },
-      maxStudents: classObj.maxStudents,
-      description: classObj.description
-    });
-    setIsDialogOpen(true);
-  };
+  console.log("Available programs:", availablePrograms);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      // Find the actual program ID from the database
-      const selectedProgram = dbPrograms.find(p => p.level.toLowerCase() === formData.program);
-      
-      if (!selectedProgram) {
-        throw new Error('Selected program not found');
-      }
-
-      const programData = {
-        name: formData.name,
-        program: selectedProgram._id,
-        coach: formData.coach,
-        students: formData.students,
-        schedule: {
-          dayOfWeek: parseInt(formData.schedule.dayOfWeek.toString()),
-          startTime: formData.schedule.startTime,
-          duration: parseInt(formData.schedule.duration.toString()),
-          timezone: formData.schedule.timezone
-        },
-        maxStudents: parseInt(formData.maxStudents.toString()),
-        description: formData.description,
-        status: editingClass ? editingClass.status : 'scheduled'
-      };
-
-      let response;
-      if (editingClass) {
-        response = await api.put(`/classes/${editingClass._id}`, programData);
-        toast({
-          title: 'Success',
-          description: 'Class updated successfully',
-        });
-      } else {
-        response = await api.post('/classes', programData);
-        toast({
-          title: 'Success',
-          description: 'Class created successfully',
-        });
-      }
-
-      setIsDialogOpen(false);
-      fetchClasses();
-    } catch (error: any) {
-      console.error('Error saving class:', error.response?.data || error);
-      toast({
-        title: 'Error',
-        description: error.response?.data?.message || `Failed to ${editingClass ? 'update' : 'create'} class`,
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const handleStatusUpdate = async (classId: string, status: string) => {
-    try {
-      await api.patch(`/classes/${classId}/status`, { status });
-      toast({
-        title: 'Success',
-        description: 'Class status updated successfully',
-      });
-      fetchClasses();
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to update class status',
-        variant: 'destructive',
-      });
-    }
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-[#94A3B8]">Loading...</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-4">
-      {/* Add portal container */}
-      <div ref={portalContainerRef} className="relative z-50" />
-      
+    <div className="space-y-6">
+      {/* Header */}
       <div className="flex justify-between items-center">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#94A3B8] w-5 h-5" />
           <Input
             type="text"
-            placeholder="Search classes..."
+            placeholder="Search coaches..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-[#1F2937] border-[#374151] text-white placeholder-[#94A3B8] w-64"
+            className="pl-10 bg-[#1F2937] border-[#374151] text-white w-64"
           />
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-[#60A5FA] hover:bg-[#3B82F6] text-white">
-              <Plus className="w-4 h-4 mr-2" />
-              {editingClass ? 'Edit Class' : 'Add New Class'}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px] bg-[#111827] text-white max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{editingClass ? 'Edit Class' : 'Add New Class'}</DialogTitle>
-              <DialogDescription className="text-[#94A3B8]">
-                {editingClass ? 'Update class details' : 'Create a new class and assign a coach'}
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <Label htmlFor="className">Class Name</Label>
-                <Input
-                  id="className"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                  className="bg-[#1F2937] border-[#374151] text-white w-full"
-                />
-              </div>
-
-              <div>
-                <Label>Select Program</Label>
-                <div className="grid grid-cols-3 gap-2 mt-2">
-                  {PROGRAMS.map((program) => (
-                    <button
-                      key={program.id}
-                      type="button"
-                      onClick={() => handleProgramSelect(program.id)}
-                      className={`px-4 py-3 rounded-lg transition-all text-base font-medium ${
-                        formData.program === program.id
-                          ? 'bg-[#60A5FA] text-white'
-                          : 'bg-[#1F2937] text-[#94A3B8] hover:bg-[#374151] hover:text-white'
-                      }`}
-                    >
-                      {program.title}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {formData.program && students.length > 0 && (
-                <div>
-                  <Label htmlFor="studentsSelect">Select Students ({students.length} available)</Label>
-                  <MultiSelect
-                    id="studentsSelect"
-                    value={formData.students}
-                    onChange={(value) => setFormData({ ...formData, students: value })}
-                    options={students.map(student => ({
-                      value: student._id,
-                      label: student.name
-                    }))}
-                    className="bg-[#1F2937] border-[#374151] text-white w-full"
-                    placeholder="Select students"
-                  />
-                </div>
-              )}
-
-              {formData.program && students.length === 0 && (
-                <div className="text-[#94A3B8] text-sm">
-                  No students found for this program level.
-                </div>
-              )}
-
-              <div>
-                <Label htmlFor="coachSelect">Coach</Label>
-                <Select
-                  value={formData.coach}
-                  onValueChange={(value) => setFormData({ ...formData, coach: value })}
-                >
-                  <SelectTrigger id="coachSelect" className="bg-[#1F2937] border-[#374151] text-white w-full">
-                    <SelectValue placeholder="Select coach" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-[#1F2937] border-[#374151]">
-                    {coaches.map((coach) => (
-                      <SelectItem key={coach._id} value={coach._id}>
-                        {coach.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label>Schedule</Label>
-                <div className="grid grid-cols-2 gap-4 mt-2">
-                  <div>
-                    <Label htmlFor="daySelect">Day</Label>
-                    <Select
-                      value={formData.schedule.dayOfWeek.toString()}
-                      onValueChange={(value) =>
-                        setFormData({
-                          ...formData,
-                          schedule: { ...formData.schedule, dayOfWeek: parseInt(value) }
-                        })
-                      }
-                    >
-                      <SelectTrigger id="daySelect" className="bg-[#1F2937] border-[#374151] text-white">
-                        <SelectValue placeholder="Select day" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-[#1F2937] border-[#374151]">
-                        {DAYS_OF_WEEK.map((day, index) => (
-                          <SelectItem key={index} value={index.toString()}>
-                            {day}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="startTime">Time</Label>
-                    <Input
-                      id="startTime"
-                      type="time"
-                      value={formData.schedule.startTime}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          schedule: { ...formData.schedule, startTime: e.target.value }
-                        })
-                      }
-                      required
-                      className="bg-[#1F2937] border-[#374151] text-white"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <Label>Duration</Label>
-                <div className="grid grid-cols-2 gap-4 mt-2">
-                  <div>
-                    <Label htmlFor="duration">Length (minutes)</Label>
-                    <Input
-                      id="duration"
-                      type="number"
-                      value={formData.schedule.duration}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          schedule: { ...formData.schedule, duration: parseInt(e.target.value) }
-                        })
-                      }
-                      required
-                      className="bg-[#1F2937] border-[#374151] text-white"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="timezoneSelect">Timezone</Label>
-                    <Select
-                      value={formData.schedule.timezone}
-                      onValueChange={(value) =>
-                        setFormData({
-                          ...formData,
-                          schedule: { ...formData.schedule, timezone: value }
-                        })
-                      }
-                    >
-                      <SelectTrigger id="timezoneSelect" className="bg-[#1F2937] border-[#374151] text-white">
-                        <SelectValue placeholder="Select timezone" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-[#1F2937] border-[#374151]">
-                        {TIMEZONES.map((tz) => (
-                          <SelectItem key={tz.value} value={tz.value}>
-                            {tz.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="maxStudents">Max Students</Label>
-                <Input
-                  id="maxStudents"
-                  type="number"
-                  value={formData.maxStudents}
-                  onChange={(e) =>
-                    setFormData({ ...formData, maxStudents: parseInt(e.target.value) })
-                  }
-                  required
-                  className="bg-[#1F2937] border-[#374151] text-white"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full p-2 rounded bg-[#1F2937] border border-[#374151] text-white min-h-[100px]"
-                  required
-                />
-              </div>
-
-              <div className="flex justify-end space-x-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
-                  className="border-[#374151] text-[#94A3B8] hover:bg-[#374151] hover:text-white"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  className="bg-[#60A5FA] hover:bg-[#3B82F6] text-white"
-                  disabled={loading}
-                >
-                  {loading ? 'Saving...' : 'Save Class'}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
       </div>
 
-      <div className="bg-[#111827]/50 backdrop-blur-sm border border-[#1F2937] rounded-xl p-6">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-[#1F2937]">
-              <th className="text-left py-3 text-[#94A3B8]">Class Name</th>
-              <th className="text-left py-3 text-[#94A3B8]">Program</th>
-              <th className="text-left py-3 text-[#94A3B8]">Coach</th>
-              <th className="text-left py-3 text-[#94A3B8]">Students</th>
-              <th className="text-left py-3 text-[#94A3B8]">Schedule</th>
-              <th className="text-left py-3 text-[#94A3B8]">Status</th>
-              <th className="text-left py-3 text-[#94A3B8]">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {classes.map((classObj) => (
-              <tr key={classObj._id} className="border-b border-[#1F2937]">
-                <td className="py-4 text-white">{classObj.name}</td>
-                <td className="py-4 text-[#94A3B8]">{classObj.program.level}</td>
-                <td className="py-4 text-[#94A3B8]">{classObj.coach.name}</td>
-                <td className="py-4 text-[#94A3B8]">
-                  <span className={`${
-                    classObj.students.length >= classObj.maxStudents ? 'text-red-500' : 'text-green-500'
-                  }`}>
-                    {classObj.students.length}/{classObj.maxStudents}
-                  </span>
-                </td>
-                <td className="py-4 text-[#94A3B8]">
-                  {DAYS_OF_WEEK[classObj.schedule.dayOfWeek]} at {classObj.schedule.startTime}
-                </td>
-                <td className="py-4">
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs ${
-                      classObj.status === 'scheduled'
-                        ? 'bg-blue-500/20 text-blue-500'
-                        : classObj.status === 'in-progress'
-                        ? 'bg-green-500/20 text-green-500'
-                        : classObj.status === 'completed'
-                        ? 'bg-gray-500/20 text-gray-500'
-                        : 'bg-red-500/20 text-red-500'
-                    }`}
+      {/* Coaches List */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {coaches.map((coach) => (
+          <div
+            key={coach._id}
+            className={`p-4 rounded-lg cursor-pointer transition-all ${
+              selectedCoach?._id === coach._id
+                ? 'bg-[#60A5FA] text-white'
+                : 'bg-[#1F2937] text-[#94A3B8] hover:bg-[#374151] hover:text-white'
+            }`}
+            onClick={() => setSelectedCoach(coach)}
+          >
+            <h3 className="font-medium">{coach.name}</h3>
+            <p className="text-sm">{coach.email}</p>
+            <p className="text-sm mt-2">
+              {coach.students?.length || 0} students assigned
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* Selected Coach Details */}
+      {selectedCoach && (
+        <div className="bg-[#1F2937] rounded-lg p-6">
+          <h2 className="text-xl font-medium mb-4">{selectedCoach.name}'s Students</h2>
+          
+          {/* Available Students */}
+          <div className="mb-6">
+            <h3 className="text-lg font-medium mb-2">Available Students</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {students
+                .filter(student => !selectedCoach.students.includes(student._id))
+                .map((student) => (
+                  <div
+                    key={student._id}
+                    className="flex items-center justify-between p-4 bg-[#374151] rounded-lg"
                   >
-                    {classObj.status}
-                  </span>
-                </td>
-                <td className="py-4">
-                  <div className="flex items-center space-x-2">
-                    <Select
-                      value={classObj.status}
-                      onValueChange={(value) => handleStatusUpdate(classObj._id, value)}
-                    >
-                      <SelectTrigger className="bg-[#1F2937] border-[#374151] text-white w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-[#1F2937] border-[#374151]">
-                        <SelectItem value="scheduled">Scheduled</SelectItem>
-                        <SelectItem value="in-progress">In Progress</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div>
+                      <p className="font-medium">{student.name}</p>
+                      <p className="text-sm text-[#94A3B8]">{student.email}</p>
+                      <p className="text-sm text-[#94A3B8]">
+                        Program: {student.program?.level || 'No Program'}
+                      </p>
+                    </div>
                     <Button
-                      onClick={() => handleEdit(classObj)}
-                      variant="outline"
-                      className="border-[#374151] text-[#94A3B8] hover:bg-[#374151] hover:text-white"
+                      onClick={() => handleAssignStudent(student._id)}
+                      className="bg-[#60A5FA] hover:bg-[#3B82F6] text-white"
                     >
-                      Edit
+                      <UserPlus className="w-4 h-4 mr-2" />
+                      Assign
                     </Button>
                   </div>
-                </td>
-              </tr>
+                ))}
+            </div>
+          </div>
+
+          {/* Assigned Students */}
+          <div>
+            <h3 className="text-lg font-medium mb-2">Assigned Students</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {students
+                .filter(student => selectedCoach.students.includes(student._id))
+                .map((student) => (
+                  <div
+                    key={student._id}
+                    className="flex items-center justify-between p-4 bg-[#374151] rounded-lg"
+                  >
+                    <div>
+                      <p className="font-medium">{student.name}</p>
+                      <p className="text-sm text-[#94A3B8]">{student.email}</p>
+                      <p className="text-sm text-[#94A3B8]">
+                        Program: {student.program?.level || 'No Program'}
+                      </p>
+                    </div>
+                    <Button
+                      onClick={() => handleRemoveStudent(student._id)}
+                      className="bg-red-500 hover:bg-red-600 text-white"
+                    >
+                      <UserMinus className="w-4 h-4 mr-2" />
+                      Remove
+                    </Button>
+                  </div>
+                ))}
+            </div>
+          </div>
+        </div>
+      )}
+      <div>
+        <h1>Class Management</h1>
+        <Select onValueChange={handleProgramSelect}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select Program" />
+          </SelectTrigger>
+          <SelectContent>
+            {programs.map((program) => (
+              <SelectItem key={program._id} value={program._id}>
+                {program.level}
+              </SelectItem>
             ))}
-          </tbody>
-        </table>
+          </SelectContent>
+        </Select>
+        {/* Render students here */}
       </div>
     </div>
   );
 };
 
-export default ClassManagement; 
+export default ClassManagement;

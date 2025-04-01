@@ -12,7 +12,6 @@ import {
   Text,
   useToast,
   Select,
-  Spinner,
 } from '@chakra-ui/react';
 
 const Register = () => {
@@ -25,28 +24,23 @@ const Register = () => {
   });
   const [programs, setPrograms] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [programsLoading, setProgramsLoading] = useState(true);
   const navigate = useNavigate();
   const toast = useToast();
 
   useEffect(() => {
     const fetchPrograms = async () => {
       try {
-        setProgramsLoading(true);
         const response = await axios.get('/api/auth/programs');
-        console.log('Fetched programs:', response.data); // Debug log
         setPrograms(response.data);
       } catch (error) {
         console.error('Error fetching programs:', error);
         toast({
           title: 'Error',
-          description: 'Failed to load programs. Please try again later.',
+          description: 'Failed to load programs',
           status: 'error',
           duration: 5000,
           isClosable: true,
         });
-      } finally {
-        setProgramsLoading(false);
       }
     };
 
@@ -130,31 +124,25 @@ const Register = () => {
               <FormLabel>Role</FormLabel>
               <Select name="role" value={formData.role} onChange={handleChange}>
                 <option value="student">Student</option>
-                <option value="coach">Coach</option>
+                <option value="teacher">Teacher</option>
               </Select>
             </FormControl>
 
             {(formData.role === 'student') && (
               <FormControl isRequired>
                 <FormLabel>Program</FormLabel>
-                {programsLoading ? (
-                  <Spinner />
-                ) : programs.length > 0 ? (
-                  <Select
-                    name="programId"
-                    value={formData.programId}
-                    onChange={handleChange}
-                    placeholder="Select a program"
-                  >
-                    {programs.map((program) => (
-                      <option key={program._id} value={program._id}>
-                        {program.level}
-                      </option>
-                    ))}
-                  </Select>
-                ) : (
-                  <Text color="red.500">No programs available. Please contact support.</Text>
-                )}
+                <Select
+                  name="programId"
+                  value={formData.programId}
+                  onChange={handleChange}
+                  placeholder="Select a program"
+                >
+                  {programs.map((program) => (
+                    <option key={program._id} value={program._id}>
+                      {program.name}
+                    </option>
+                  ))}
+                </Select>
               </FormControl>
             )}
 

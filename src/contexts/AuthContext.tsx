@@ -7,12 +7,13 @@ interface User {
   name: string;
   email: string;
   role: 'student' | 'coach' | 'admin';
+  program?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string, role: 'student' | 'coach') => Promise<void>;
+  register: (name: string, email: string, password: string, role: 'student' | 'coach', programId?: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
   error: string | null;
@@ -62,13 +63,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (name: string, email: string, password: string, role: 'student' | 'coach') => {
+  const register = async (name: string, email: string, password: string, role: 'student' | 'coach', programId?: string) => {
     try {
       setIsLoading(true);
       setError(null);
       console.log('Attempting registration...');
 
-      const data = await authAPI.register({ name, email, password, role });
+      const data = await authAPI.register({ name, email, password, role, programId });
       setUser(data.user);
       
       // Redirect based on user role

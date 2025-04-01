@@ -7,16 +7,26 @@ import { useToast } from '@/components/ui/use-toast';
 import api from '@/lib/api';
 import UserManagementDialog from '@/components/admin/UserManagementDialog';
 
+interface Program {
+  _id: string;
+  name: string;
+  level: string;
+  description: string;
+}
+
 interface User {
   _id: string;
   name: string;
   email: string;
   role: 'student' | 'coach' | 'admin';
+  program?: string;
+  programDetails?: Program;
   createdAt: string;
 }
 
 const AdminUsers = () => {
   const [users, setUsers] = useState<User[]>([]);
+  const [programs, setPrograms] = useState<Program[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -25,12 +35,43 @@ const AdminUsers = () => {
 
   useEffect(() => {
     fetchUsers();
+    fetchPrograms();
   }, []);
+
+  const fetchPrograms = async () => {
+    try {
+      const response = await api.get('/programs');
+      setPrograms(response.data);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch programs',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const fetchUsers = async () => {
     try {
       const response = await api.get('/users');
-      setUsers(response.data);
+      const usersWithPrograms = await Promise.all(
+        response.data.map(async (user: User) => {
+          if (user.role === 'student' && user.program) {
+            try {
+              const programResponse = await api.get(`/programs/${user.program}`);
+              return {
+                ...user,
+                programDetails: programResponse.data,
+              };
+            } catch (error) {
+              console.error(`Failed to fetch program details for user ${user._id}:`, error);
+              return user;
+            }
+          }
+          return user;
+        })
+      );
+      setUsers(usersWithPrograms);
     } catch (error) {
       toast({
         title: 'Error',
@@ -110,7 +151,7 @@ const AdminUsers = () => {
                 <th className="text-left py-3 text-[#94A3B8]">User</th>
                 <th className="text-left py-3 text-[#94A3B8]">Role</th>
                 <th className="text-left py-3 text-[#94A3B8]">Email</th>
-                <th className="text-left py-3 text-[#94A3B8]">Status</th>
+                <th className="text-left py-3 text-[#94A3B8]">Program</th>
                 <th className="text-left py-3 text-[#94A3B8]">Last Active</th>
                 <th className="text-left py-3 text-[#94A3B8]">Actions</th>
               </tr>
@@ -121,7 +162,13 @@ const AdminUsers = () => {
                   <td className="py-4 text-white">{user.name}</td>
                   <td className="py-4 text-[#94A3B8]">{user.role}</td>
                   <td className="py-4 text-[#94A3B8]">{user.email}</td>
-                  <td className="py-4 text-[#94A3B8]">Active</td>
+                  <td className="py-4 text-[#94A3B8]">
+                    {user.role === 'student' && user.programDetails ? (
+                      user.programDetails.name
+                    ) : (
+                      '-'
+                    )}
+                  </td>
                   <td className="py-4 text-[#94A3B8]">
                     {new Date(user.createdAt).toLocaleDateString()}
                   </td>

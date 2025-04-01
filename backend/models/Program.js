@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const programSchema = new mongoose.Schema({
-  title: {
+  name: {
     type: String,
     required: true,
     trim: true
@@ -9,35 +9,20 @@ const programSchema = new mongoose.Schema({
   level: {
     type: String,
     required: true,
-    enum: ['Beginner', 'Intermediate 1', 'Intermediate 2', 'Advanced']
+    enum: ['Beginner', 'Intermediate', 'Advanced'],
+    default: 'Beginner'
   },
   description: {
     type: String,
     required: true
   },
-  features: [{
-    type: String
-  }],
-  duration: {
+  requirements: {
     type: String,
     required: true
   },
-  price: {
-    type: Number,
-    required: true
-  },
-  type: {
-    type: String,
-    required: true,
-    enum: ['one-to-one', 'group']
-  },
-  classesPerWeek: {
-    type: Number,
-    required: true
-  },
-  minutesPerClass: {
-    type: Number,
-    required: true
+  createdAt: {
+    type: Date,
+    default: Date.now
   }
 });
 

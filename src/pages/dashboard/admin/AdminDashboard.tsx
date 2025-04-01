@@ -124,34 +124,34 @@ const AdminDashboard = () => {
           {/* Users Tab */}
           <TabsContent value="users" className="space-y-4">
             <div className="flex justify-between items-center">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#94A3B8] w-5 h-5" />
-                <Input
-                  type="text"
-                  placeholder="Search users..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-[#1F2937] border-[#374151] text-white placeholder-[#94A3B8] w-64"
-                />
-              </div>
-              <Button className="bg-[#60A5FA] hover:bg-[#3B82F6] text-white">
-                Add New User
-              </Button>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#94A3B8] w-5 h-5" />
+              <Input
+                type="text"
+                placeholder="Search users..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-[#1F2937] border-[#374151] text-white placeholder-[#94A3B8] w-64"
+              />
             </div>
+            <Button className="bg-[#60A5FA] hover:bg-[#3B82F6] text-white">
+              Add New User
+            </Button>
+        </div>
 
-            <div className="bg-[#111827]/50 backdrop-blur-sm border border-[#1F2937] rounded-xl p-6">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-[#1F2937]">
-                    <th className="text-left py-3 text-[#94A3B8]">User</th>
-                    <th className="text-left py-3 text-[#94A3B8]">Role</th>
-                    <th className="text-left py-3 text-[#94A3B8]">Email</th>
-                    <th className="text-left py-3 text-[#94A3B8]">Status</th>
-                    <th className="text-left py-3 text-[#94A3B8]">Last Active</th>
-                    <th className="text-left py-3 text-[#94A3B8]">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
+        <div className="bg-[#111827]/50 backdrop-blur-sm border border-[#1F2937] rounded-xl p-6">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-[#1F2937]">
+                <th className="text-left py-3 text-[#94A3B8]">User</th>
+                <th className="text-left py-3 text-[#94A3B8]">Role</th>
+                <th className="text-left py-3 text-[#94A3B8]">Email</th>
+                <th className="text-left py-3 text-[#94A3B8]">Status</th>
+                <th className="text-left py-3 text-[#94A3B8]">Last Active</th>
+                <th className="text-left py-3 text-[#94A3B8]">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
                   {users.map((user) => (
                     <tr key={user._id} className="border-b border-[#1F2937]">
                       <td className="py-4 text-white">{user.name}</td>
@@ -160,13 +160,13 @@ const AdminDashboard = () => {
                       <td className="py-4 text-[#94A3B8]">Active</td>
                       <td className="py-4 text-[#94A3B8]">
                         {new Date(user.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="py-4">
+                </td>
+                <td className="py-4">
                         <Button variant="ghost" className="text-[#60A5FA] hover:text-[#3B82F6]">
-                          Edit
-                        </Button>
-                      </td>
-                    </tr>
+                      Edit
+                    </Button>
+                </td>
+              </tr>
                   ))}
                 </tbody>
               </table>
@@ -188,8 +188,8 @@ const AdminDashboard = () => {
                   placeholder="Search enrollments..."
                   className="pl-10 bg-[#1F2937] border-[#374151] text-white placeholder-[#94A3B8] w-64"
                 />
-              </div>
-            </div>
+                    </div>
+                  </div>
 
             <div className="bg-[#111827]/50 backdrop-blur-sm border border-[#1F2937] rounded-xl p-6">
               <table className="w-full">
@@ -208,7 +208,7 @@ const AdminDashboard = () => {
                     <tr key={enrollment._id} className="border-b border-[#1F2937]">
                       <td className="py-4 text-white">{enrollment.student.name}</td>
                       <td className="py-4 text-[#94A3B8]">{enrollment.program.title}</td>
-                      <td className="py-4">
+                <td className="py-4">
                         <span className={`px-2 py-1 rounded-full text-xs ${
                           enrollment.status === 'active' ? 'bg-green-500/20 text-green-500' :
                           enrollment.status === 'pending' ? 'bg-yellow-500/20 text-yellow-500' :
@@ -216,33 +216,33 @@ const AdminDashboard = () => {
                           'bg-red-500/20 text-red-500'
                         }`}>
                           {enrollment.status}
-                        </span>
-                      </td>
-                      <td className="py-4">
+                  </span>
+                </td>
+                <td className="py-4">
                         <span className={`px-2 py-1 rounded-full text-xs ${
                           enrollment.paymentStatus === 'paid' ? 'bg-green-500/20 text-green-500' :
                           enrollment.paymentStatus === 'pending' ? 'bg-yellow-500/20 text-yellow-500' :
                           'bg-red-500/20 text-red-500'
                         }`}>
                           {enrollment.paymentStatus}
-                        </span>
-                      </td>
+                  </span>
+                </td>
                       <td className="py-4 text-[#94A3B8]">
                         {new Date(enrollment.createdAt).toLocaleDateString()}
                       </td>
-                      <td className="py-4">
+                <td className="py-4">
                         <Button
                           variant="ghost"
                           className="text-[#60A5FA] hover:text-[#3B82F6]"
                           onClick={() => handleUpdateEnrollmentStatus(enrollment._id, 'active')}
                         >
                           Update Status
-                        </Button>
-                      </td>
-                    </tr>
+                    </Button>
+                </td>
+              </tr>
                   ))}
-                </tbody>
-              </table>
+            </tbody>
+          </table>
             </div>
           </TabsContent>
 
@@ -271,11 +271,11 @@ const AdminDashboard = () => {
                     className="bg-[#1F2937] border-[#374151] text-white"
                   />
                 </div>
-                <Button className="bg-[#60A5FA] hover:bg-[#3B82F6] text-white">
+              <Button className="bg-[#60A5FA] hover:bg-[#3B82F6] text-white">
                   Save Changes
-                </Button>
-              </div>
+              </Button>
             </div>
+          </div>
           </TabsContent>
         </Tabs>
       </div>
